@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14109" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -39,7 +39,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5Mu-1V-Uq4" userLabel="NewMap">
-                                <rect key="frame" x="207.5" y="593.5" width="131.5" height="53.5"/>
+                                <rect key="frame" x="208" y="593.5" width="131" height="53.5"/>
                                 <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
                                 <state key="normal" title="New map">
@@ -70,31 +70,41 @@
                                 <color key="sectionIndexBackgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </tableView>
                             <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="snL-gx-sgu">
-                                <rect key="frame" x="157.5" y="547.5" width="51" height="31"/>
+                                <rect key="frame" x="158" y="547.5" width="51" height="31"/>
                                 <connections>
                                     <action selector="onShowFeatureChange:" destination="BV1-FR-VrT" eventType="valueChanged" id="KNj-Aj-NYv"/>
                                 </connections>
                             </switch>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="View PN Features" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Cc9-rN-p2h">
-                                <rect key="frame" x="226.5" y="552.5" width="136.5" height="21"/>
+                                <rect key="frame" x="227" y="552.5" width="136" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BJ5-11-JDS" userLabel="FileTransfer">
-                                <rect key="frame" x="36" y="523.5" width="131.5" height="80"/>
+                                <rect key="frame" x="36" y="524" width="131.5" height="79.5"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="12.6, 2.5, 12.0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="INd-HI-5WT" userLabel="Pose Label">
+                                <rect key="frame" x="227" y="513.5" width="135.5" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="INd-HI-5WT" firstAttribute="centerX" secondItem="Cc9-rN-p2h" secondAttribute="centerX" id="37v-jm-n5S"/>
                             <constraint firstItem="0ka-cC-Twy" firstAttribute="top" secondItem="3Xz-vt-npx" secondAttribute="bottom" id="5c1-dt-3UB"/>
                             <constraint firstAttribute="trailingMargin" secondItem="5Mu-1V-Uq4" secondAttribute="trailing" constant="20" id="B3D-ML-y4p"/>
                             <constraint firstAttribute="trailingMargin" secondItem="0ka-cC-Twy" secondAttribute="trailing" constant="65" id="BUC-4K-9Sv"/>
+                            <constraint firstItem="INd-HI-5WT" firstAttribute="height" secondItem="Cc9-rN-p2h" secondAttribute="height" id="Cde-9d-vaA"/>
                             <constraint firstItem="3Xz-vt-npx" firstAttribute="width" secondItem="BrB-h1-WRS" secondAttribute="width" id="Gwf-xO-0NM"/>
                             <constraint firstItem="0ka-cC-Twy" firstAttribute="height" secondItem="BrB-h1-WRS" secondAttribute="height" multiplier="0.5" id="IRD-mv-C3n"/>
+                            <constraint firstItem="Cc9-rN-p2h" firstAttribute="top" secondItem="INd-HI-5WT" secondAttribute="bottom" constant="18.5" id="IrR-eX-AIf"/>
                             <constraint firstItem="BJ5-11-JDS" firstAttribute="leading" secondItem="hwi-h6-3TD" secondAttribute="leading" id="KrP-d6-XXU"/>
+                            <constraint firstItem="INd-HI-5WT" firstAttribute="leading" secondItem="Cc9-rN-p2h" secondAttribute="leading" id="N7c-VU-5j2"/>
                             <constraint firstItem="5Mu-1V-Uq4" firstAttribute="top" secondItem="snL-gx-sgu" secondAttribute="bottom" constant="15" id="RhN-Vr-xbk"/>
                             <constraint firstItem="Oxp-Pf-bN1" firstAttribute="top" secondItem="5Mu-1V-Uq4" secondAttribute="bottom" constant="20" id="SZu-oe-wGW"/>
                             <constraint firstItem="BJ5-11-JDS" firstAttribute="centerY" secondItem="snL-gx-sgu" secondAttribute="centerY" id="Sjh-dH-kmf"/>
@@ -120,6 +130,7 @@
                         <outlet property="mapTable" destination="0ka-cC-Twy" id="Wi9-h9-oaJ"/>
                         <outlet property="newMapButton" destination="5Mu-1V-Uq4" id="1Fz-Pc-jo4"/>
                         <outlet property="pickMapButton" destination="hwi-h6-3TD" id="Wzk-Ng-ZJF"/>
+                        <outlet property="poseLabel" destination="INd-HI-5WT" id="e42-r9-xUS"/>
                         <outlet property="scnView" destination="BrB-h1-WRS" id="mCc-Ex-061"/>
                         <outlet property="showPNLabel" destination="Cc9-rN-p2h" id="ToW-PY-abX"/>
                         <outlet property="showPNSelection" destination="snL-gx-sgu" id="bJI-IB-7Mu"/>

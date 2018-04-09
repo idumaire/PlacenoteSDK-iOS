@@ -25,6 +25,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
   @IBOutlet var showPNLabel: UILabel!
   @IBOutlet var showPNSelection: UISwitch!
   @IBOutlet var fileTransferLabel: UILabel!
+  @IBOutlet var poseLabel: UILabel!
   
   //AR Scene
   private var scnScene: SCNScene!
@@ -34,7 +35,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
   private var mappingStarted: Bool = false;
   private var mappingComplete: Bool = false;
   private var localizationStarted: Bool = false;
-  private var reportDebug: Bool = false
+  private var reportDebug: Bool = true
 
   //Application related variables
   private var shapeManager: ShapeManager!
@@ -45,7 +46,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
   private var maps: [(String, [String: Any]?)] = [("Sample Map", [:])]
   private var camManager: CameraManager? = nil;
   private var ptViz: FeaturePointVisualizer? = nil;
-  private var showFeatures: Bool = true
+  private var showFeatures: Bool = false
 
   private var locationManager: CLLocationManager!
   private var lastLocation: CLLocation? = nil
@@ -87,6 +88,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
         locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation;
         locationManager.startUpdatingLocation()
     }
+    
+    poseLabel.text = ""
   }
 
   //Initialize view and scene
@@ -145,7 +148,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
 
   //Receive a pose update when a new pose is calculated
   func onPose(_ outputPose: matrix_float4x4, _ arkitPose: matrix_float4x4) -> Void {
-
+    poseLabel.text = String(format:"%.2f",outputPose.position().x) + "," + String(format:"%.2f",outputPose.position().y) + "," + String(format:"%.2f",outputPose.position().z)
   }
 
   //Receive a status update when the status changes
