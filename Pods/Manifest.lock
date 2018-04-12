@@ -1,11 +1,11 @@
 PODS:
-  - PlacenoteSDK (1.4.1)
+  - PlacenoteSDK (1.4.3)
 
 DEPENDENCIES:
   - PlacenoteSDK
 
 SPEC CHECKSUMS:
-  PlacenoteSDK: 50182b0aac4a9dc460da98eaacc304ba779f25ea
+  PlacenoteSDK: 8ffb009efa3ea46b5d216c40ad35d020ab5deb7d
 
 PODFILE CHECKSUM: da40cb9f880c21da8adc255335032f9639aaa4e7
 
