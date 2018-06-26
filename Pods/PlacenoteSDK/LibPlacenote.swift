@@ -116,6 +116,7 @@ public class LibPlacenote {
   public typealias FileTransferCallback = (_ completed: Bool, _ faulted: Bool, _ percentage: Float) -> Void
   public typealias DeleteMapCallback = (_ deleted: Bool) -> Void
   public typealias ListMapCallback = (_ success: Bool, _ mapList: [String: MapMetadata]) -> Void
+  public typealias MetadataCallback = (_ success: Bool, _ metadata: MapMetadata) -> Void
   
   /// Enums that indicates the status of the LibPlacenote mapping module
   public enum MappingStatus {
@@ -254,6 +255,7 @@ public class LibPlacenote {
   private var saveMapCbDict: Dictionary<Int, SaveMapCallback> = Dictionary()
   private var deleteMapCbDict: Dictionary<Int, DeleteMapCallback> = Dictionary()
   private var listMapCbDict: Dictionary<Int, ListMapCallback> = Dictionary()
+  private var metadataCbDict: Dictionary<Int, MetadataCallback> = Dictionary()
   private var ctxDict: Dictionary<Int, CallbackContext> = Dictionary()
   private var prevStatus: MappingStatus = MappingStatus.waiting
   private var currStatus: MappingStatus = MappingStatus.waiting
@@ -348,7 +350,7 @@ public class LibPlacenote {
           libPtr.currStatus = status
         })
       }
-    }, ctxPtr)
+    }, false, ctxPtr)
   }
   
   /**
@@ -911,6 +913,73 @@ public class LibPlacenote {
       print (error)
       return false
     }
+  }
+  
+  /**
+   Get the metadata for the given map ID.
+   
+   - Parameter mapId: ID of the map
+   - Parameter metadataCb: asynchronous callback that returns the results of the metadata query
+   - Returns: False if the SDK was not initialized, or metadataJson was invalid.
+   True otherwise.
+   */
+  public func getMapMetadata(mapId: String, metadataCb: @escaping MetadataCallback) -> Bool {
+    let cbCtx: CallbackContext = CallbackContext(id: UUID().uuidString, ptr: self)
+    metadataCbDict[cbCtx.callbackId] = metadataCb
+    ctxDict[cbCtx.callbackId] = cbCtx
+    
+    let anUnmanaged = Unmanaged<CallbackContext>.passUnretained(ctxDict[cbCtx.callbackId]!)
+    let ctxPtr = UnsafeMutableRawPointer(anUnmanaged.toOpaque())
+    
+    return PNGetMetadata(mapId, {(result: UnsafeMutablePointer<PNCallbackResult>?, swiftContext: UnsafeMutableRawPointer?) -> Void in
+      let success = result?.pointee.success
+      let cbReturnedCtx = Unmanaged<CallbackContext>.fromOpaque(swiftContext!).takeUnretainedValue()
+      let libPtr = cbReturnedCtx.libPtr
+      let callbackId = cbReturnedCtx.callbackId
+      let metadata = MapMetadata()
+      
+      if (success != nil && success!) {
+        let fetchedMetadata: String? = String(cString: (result?.pointee.msg)!, encoding: String.Encoding.ascii)
+        os_log("Metadata fetched from the database! Response: %@", fetchedMetadata!)
+        
+        if let data = fetchedMetadata?.data(using: .utf8) {
+          do {
+            let place = (try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any])!
+            let metadataJson = place["metadata"] as! [String:Any]
+            let locationJson = metadataJson["location"] as? [String:Double]
+            
+            metadata.created = metadataJson["created"] as? UInt64
+            metadata.name = metadataJson["name"] as? String
+            if (locationJson != nil) {
+              metadata.location = MapLocation()
+              metadata.location?.latitude = locationJson!["latitude"]!
+              metadata.location?.longitude = locationJson!["longitude"]!
+              metadata.location?.altitude = locationJson!["altitude"]!
+            }
+            metadata.userdata = metadataJson["userdata"]
+            os_log("Fetched metadata! %@", log: OSLog.default, type: .info, metadataJson)
+            
+            DispatchQueue.main.async(execute: {() -> Void in
+              libPtr.metadataCbDict[callbackId]!(true, metadata)
+            })
+          } catch {
+            os_log("Canot parse file list: %@", log: OSLog.default, type: .error, error.localizedDescription)
+          }
+        }
+      } else {
+        let errorMsg: String? = String(cString: (result?.pointee.msg)!, encoding: String.Encoding.ascii)
+        os_log("Failed to fetch the metadata! Error msg: %@", log: OSLog.default, type: .error, errorMsg!)
+        
+        DispatchQueue.main.async(execute: {() -> Void in
+          libPtr.metadataCbDict[callbackId]!(false, metadata)
+        })
+      }
+      
+      DispatchQueue.main.async(execute: {() -> Void in
+        libPtr.metadataCbDict.removeValue(forKey: callbackId)
+        libPtr.ctxDict.removeValue(forKey: callbackId)
+      })
+    }, ctxPtr) == 0
   }
   
   /**

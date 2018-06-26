@@ -462,12 +462,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
           } else {
             self.statusLabel.text = "Map Loaded. Shape file not found"
           }
+
           LibPlacenote.instance.startSession()
           
-          
-          
           if (self.reportDebug) {
-            LibPlacenote.instance.startReportRecord (uploadProgressCb: ({(completed: Bool, faulted: Bool, percentage: Float) -> Void in
+            LibPlacenote.instance.startReportRecord (uploadProgressCb: {(completed: Bool, faulted: Bool, percentage: Float) -> Void in
               if (completed) {
                 self.statusLabel.text = "Dataset Upload Complete"
                 self.fileTransferLabel.text = ""
@@ -478,7 +477,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
                 self.fileTransferLabel.text = "Dataset Upload: " + String(format: "%.3f", percentage) + "/1.0"
               }
             })
-            )
             print ("Started Debug Report")
           }
           
