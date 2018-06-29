@@ -17,7 +17,7 @@
 
 enum Status{INVALID, GOOD, BAD, DELETED};
 
-void initializeSDK(const char* apiKey, const char* mapPath, const char* appBasePath, void* swiftContext, result_callback cb)
+void initializeSDK(const char* apiKey, const char* mapPath, const char* appBasePath, void* swiftContext, result_callback cb, transfer_map_callback resumeMapCb, transfer_map_callback resumeDatasetCb)
 {
   PNInitParams params;
 
@@ -25,7 +25,7 @@ void initializeSDK(const char* apiKey, const char* mapPath, const char* appBaseP
   params.appBasePath = appBasePath;
   params.mapPath = mapPath;
 
-  PNInitialize (&params, cb, swiftContext); 
+  PNInitialize (&params, cb, swiftContext, resumeMapCb, resumeDatasetCb);
 }
 
 

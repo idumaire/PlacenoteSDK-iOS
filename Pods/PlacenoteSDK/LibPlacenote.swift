@@ -108,6 +108,30 @@ public protocol PNDelegate {
   func onStatusChange(_ prevStatus: LibPlacenote.MappingStatus, _ currStatus: LibPlacenote.MappingStatus) -> Void
 }
 
+/// Interface that can be implemented by listener classes that subscribe to updates in map (and dataset uploads) after the app is restarted.
+public protocol PreviousPNSessionDelegate {
+  /**
+   Callback to subscribe to status of old map uploads unfinished due to app closure
+   
+   - Parameter uploadStatus: Status of map upload.
+   */
+  func prevSessionMapUploadStatus(mapid: String, completed: Bool, faulted: Bool, percentage: Float) -> Void
+  
+  /**
+   Callback to subscribe to status of old dataset uploads unfinished due to app closure
+   
+   - Parameter uploadStatus: Status of dataset upload.
+   */
+  func prevSessionDatasetUploadStatus(mapid: String, completed: Bool, faulted: Bool, percentage: Float) -> Void
+  
+}
+
+//Provide a default implemention of prevSessionDatasetUploadStatus, as this is optional.
+public extension PreviousPNSessionDelegate {
+  func prevSessionDatasetUploadStatus(mapid: String, completed: Bool, faulted: Bool, percentage: Float)  -> Void {
+    //do nothing because you are not uploading datasets.
+  }
+}
 
 /// Swift wrapper of LibPlacenote C API
 public class LibPlacenote {
@@ -238,9 +262,13 @@ public class LibPlacenote {
     }
   }
   
-  /// A multicast delegate developers can append to in order to subscribe
+  /// A multicast delegate to subscribe
   /// to the pose and status events from LibPlacenote
   public var multiDelegate: MulticastPNDelegate = MulticastPNDelegate()
+  
+  /// A multicast delegate to subscribe
+  /// to the updates in upload status after the app has restarted.
+  public var prevSessionDelegate: PreviousSessionUploadDelegate = PreviousSessionUploadDelegate()
   
   private typealias NativeInitResultPtr = UnsafeMutablePointer<PNCallbackResult>
   private typealias NativePosePtr = UnsafeMutablePointer<PNTransform>
@@ -262,7 +290,11 @@ public class LibPlacenote {
    Function to initialize the LibPlacenote SDK, must be called before any other function is invoked
    */
   public func initialize(apiKey: String) -> Void {
-    let anUnmanaged = Unmanaged<LibPlacenote>.passUnretained(self)
+    
+    let cbCtx: CallbackContext = CallbackContext(id: UUID().uuidString, ptr: self)
+    ctxDict[cbCtx.callbackId] = cbCtx
+    
+    let anUnmanaged = Unmanaged<CallbackContext>.passUnretained(ctxDict[cbCtx.callbackId]!)
     let ctxPtr = UnsafeMutableRawPointer(anUnmanaged.toOpaque())
     
     os_log ("initializing SDK")
@@ -294,7 +326,48 @@ public class LibPlacenote {
           os_log ("Error: %@", log: OSLog.default, type: .error, str)
         }
       }
-    })
+    },{(status: UnsafeMutablePointer<PNTransferStatus>?, ctxPtr: UnsafeMutableRawPointer?) -> Void in
+      let cbCtx = Unmanaged<CallbackContext>.fromOpaque(ctxPtr!).takeUnretainedValue()
+      let complete = status?.pointee.completed
+      let faulted = status?.pointee.faulted
+      let bytesTransferred = status?.pointee.bytesTransferred
+      let bytesTotal = status?.pointee.bytesTotal
+      let mapId: String? = String(cString: (status?.pointee.mapId)!, encoding: String.Encoding.ascii)
+
+      DispatchQueue.main.async(execute: {() -> Void in
+        if (complete != nil && complete!) {
+          os_log("Uploaded Map!")
+          cbCtx.libPtr.prevSessionDelegate.prevSessionMapUploadStatus(mapid: mapId!, completed: true, faulted: false, percentage: 1.0)
+        } else if (faulted != nil && faulted!) {
+          os_log("Failed to upload dataset!", log: OSLog.default, type: .fault )
+          cbCtx.libPtr.prevSessionDelegate.prevSessionMapUploadStatus(mapid: mapId!, completed: false, faulted: true, percentage: 0.0)
+        } else {
+          os_log("Uploading dataset!")
+          cbCtx.libPtr.prevSessionDelegate.prevSessionMapUploadStatus(mapid: mapId!, completed: false, faulted: false, percentage: Float(bytesTransferred!)/Float(bytesTotal!))
+        }
+      })
+    },{(status: UnsafeMutablePointer<PNTransferStatus>?, ctxPtr: UnsafeMutableRawPointer?) -> Void in
+        let cbCtx = Unmanaged<CallbackContext>.fromOpaque(ctxPtr!).takeUnretainedValue()
+        let complete = status?.pointee.completed
+        let faulted = status?.pointee.faulted
+        let bytesTransferred = status?.pointee.bytesTransferred
+        let bytesTotal = status?.pointee.bytesTotal
+        let mapId: String? = String(cString: (status?.pointee.mapId)!, encoding: String.Encoding.ascii)
+        
+        DispatchQueue.main.async(execute: {() -> Void in
+          if (complete != nil && complete!) {
+            os_log("Uploaded Map!")
+            cbCtx.libPtr.prevSessionDelegate.prevSessionDatasetUploadStatus(mapid: mapId!, completed: true, faulted: false, percentage: 1.0)
+          } else if (faulted != nil && faulted!) {
+            os_log("Failed to upload dataset!", log: OSLog.default, type: .fault )
+            cbCtx.libPtr.prevSessionDelegate.prevSessionDatasetUploadStatus(mapid: mapId!, completed: false, faulted: true, percentage: 0.0)
+          } else {
+            os_log("Uploading dataset!")
+            cbCtx.libPtr.prevSessionDelegate.prevSessionDatasetUploadStatus(mapid: mapId!, completed: false, faulted: false, percentage: Float(bytesTransferred!)/Float(bytesTotal!))
+          }
+        })
+      }
+    )
   }
   
   

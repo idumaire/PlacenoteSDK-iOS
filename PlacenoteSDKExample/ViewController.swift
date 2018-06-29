@@ -12,9 +12,8 @@ import SceneKit
 import ARKit
 import PlacenoteSDK
 
-class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UITableViewDelegate, UITableViewDataSource, PNDelegate, CLLocationManagerDelegate {
-
-
+class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UITableViewDelegate, UITableViewDataSource, PNDelegate, PreviousPNSessionDelegate, CLLocationManagerDelegate {
+  
   //UI Elements
   @IBOutlet var scnView: ARSCNView!
 
@@ -33,7 +32,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
   @IBOutlet var planeDetLabel: UILabel!
   @IBOutlet var planeDetSelection: UISwitch!
   @IBOutlet var fileTransferLabel: UILabel!
-
   
   //AR Scene
   private var scnScene: SCNScene!
@@ -51,7 +49,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
   //Application related variables
   private var shapeManager: ShapeManager!
   private var tapRecognizer: UITapGestureRecognizer? = nil //initialized after view is loaded
-
 
   //Variables to manage PlacenoteSDK features and helpers
   private var maps: [(String, LibPlacenote.MapMetadata)] = [("Sample Map", LibPlacenote.MapMetadata())]
@@ -82,6 +79,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
     //IMPORTANT: need to run this line to subscribe to pose and status events
     //Declare yourself to be one of the delegates of PNDelegate to receive pose and status updates
     LibPlacenote.instance.multiDelegate += self;
+    LibPlacenote.instance.prevSessionDelegate += self;
 
     //Initialize tableview for the list of maps
     mapTable.delegate = self
@@ -183,9 +181,21 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
         statusLabel.text = "Moved too fast. Map Lost"
       }
       tapRecognizer?.isEnabled = false
-
     }
-
+  }
+  
+  // MARK: - PreviousPNSession Delegate functions
+  //Receive update on previous map (or dataset uploads
+  func prevSessionMapUploadStatus(mapid: String, completed: Bool, faulted: Bool, percentage: Float) {
+    if (completed)  {
+      print ("Uploaded!")
+      self.fileTransferLabel.text = ""
+    } else if (faulted) {
+      print ("Couldnt upload map")
+    } else {
+      print ("Progress: " + percentage.description)
+      self.fileTransferLabel.text = "Resuming Map Upload: " + String(format: "%.3f", percentage) + "/1.0"
+    }
   }
 
   //Receive list of maps after it is retrieved. This is only fired when fetchMapList is called (see updateMapTable())
@@ -420,7 +430,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
     }
 
     var subtitle = "Distance Unknown"
-
     let location = map.1.location
 
     if (lastLocation == nil) {
@@ -433,9 +442,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
             longitude: location!.longitude))
         subtitle = String(format: "Distance: %0.3fkm", distance / 1000)
     }
-
     cell?.detailTextLabel?.text = subtitle
-
     return cell!
   }
 
@@ -463,8 +470,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
             self.statusLabel.text = "Map Loaded. Shape file not found"
           }
           LibPlacenote.instance.startSession()
-          
-          
           
           if (self.reportDebug) {
             LibPlacenote.instance.startReportRecord (uploadProgressCb: ({(completed: Bool, faulted: Bool, percentage: Float) -> Void in
@@ -531,7 +536,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
     if let result = hitTestResults.first {
       let pose = LibPlacenote.instance.processPose(pose: result.worldTransform)
       shapeManager.spawnRandomShape(position: pose.position())
-
     }
   }
 
@@ -554,7 +558,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate, UI
     
     node.transform = LibPlacenote.instance.processPose(pose: node.transform); //transform through
     planesVizNodes[anchor.identifier] = node; //keep track of plane nodes so you can move them once you localize to a new map.
-    
     /*
      `SCNPlane` is vertically oriented in its local coordinate space, so
      rotate the plane to match the horizontal orientation of `ARPlaneAnchor`.
